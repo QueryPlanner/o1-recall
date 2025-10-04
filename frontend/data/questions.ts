@@ -1,0 +1,113 @@
+
+import { Question, Topic } from '../types';
+
+export const topics: Topic[] = [
+  { id: 'french_basics', title: 'French Basics', icon: '🇫🇷' },
+  { id: 'spanish_greetings', title: 'Spanish Greetings', icon: '🇪🇸' },
+  { id: 'italian_food', title: 'Italian Food', icon: '🇮🇹' },
+  { id: 'german_animals', title: 'German Animals', icon: '🇩🇪' },
+];
+
+export const questions: Question[] = [
+  // French Basics
+  {
+    topic: 'french_basics',
+    question: 'How do you say "cat"?',
+    has_image: false,
+    image_link: null,
+    answer: 'chat',
+    explanation: '"Chat" is the French word for cat.',
+    option_A: 'chat',
+    option_B: 'homme',
+    option_C: 'et',
+    option_D: 'femme',
+  },
+  {
+    topic: 'french_basics',
+    question: 'Which of these means "the boy"?',
+    has_image: false,
+    image_link: null,
+    answer: 'le garçon',
+    explanation: '"Le garçon" translates to "the boy".',
+    option_A: 'la fille',
+    option_B: 'le garçon',
+    option_C: 'le chat',
+    option_D: 'la femme',
+  },
+  {
+    topic: 'french_basics',
+    question: 'What is this?',
+    has_image: true,
+    image_link: 'https://picsum.photos/id/10/400/300',
+    answer: 'Un croissant',
+    explanation: 'This is a picture of a croissant.',
+    option_A: 'Un homme',
+    option_B: 'Un croissant',
+    option_C: 'Une orange',
+    option_D: 'Un chien',
+  },
+   {
+    topic: 'french_basics',
+    question: 'How do you say "I am eating"?',
+    has_image: false,
+    image_link: null,
+    answer: 'je mange',
+    explanation: '"Je mange" means "I am eating" or "I eat".',
+    option_A: 'je suis',
+    option_B: 'il est',
+    option_C: 'je mange',
+    option_D: 'tu manges',
+  },
+
+  // Spanish Greetings
+  {
+    topic: 'spanish_greetings',
+    question: 'How do you say "Hello"?',
+    has_image: false,
+    image_link: null,
+    answer: 'Hola',
+    explanation: '"Hola" is the most common way to say "Hello" in Spanish.',
+    option_A: 'Adiós',
+    option_B: 'Gracias',
+    option_C: 'Hola',
+    option_D: 'Por favor',
+  },
+  {
+    topic: 'spanish_greetings',
+    question: 'What does "Buenos días" mean?',
+    has_image: false,
+    image_link: null,
+    answer: 'Good morning',
+    explanation: '"Buenos días" is used to say "Good morning".',
+    option_A: 'Good afternoon',
+    option_B: 'Good evening',
+    option_C: 'Good morning',
+    option_D: 'Goodbye',
+  },
+
+  // Italian Food
+  {
+    topic: 'italian_food',
+    question: 'What is this dish?',
+    has_image: true,
+    image_link: 'https://picsum.photos/id/1060/400/300',
+    answer: 'Pizza',
+    explanation: 'This is a classic Italian pizza.',
+    option_A: 'Pasta',
+    option_B: 'Risotto',
+    option_C: 'Pizza',
+    option_D: 'Gelato',
+  },
+    {
+    topic: 'italian_food',
+    question: 'Which word means "cheese" in Italian?',
+    has_image: false,
+    image_link: null,
+    answer: 'Formaggio',
+    explanation: '"Formaggio" is the Italian word for cheese.',
+    option_A: 'Pane',
+    option_B: 'Vino',
+    option_C: 'Acqua',
+    option_D: 'Formaggio',
+  },
+];
