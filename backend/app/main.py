@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import AsyncIterator
 import logging
+import os
 import time
 
 from fastapi import FastAPI, Request
@@ -28,11 +29,19 @@ timing_logger = logging.getLogger("app.timing")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    await db.connect()
-    schema_path = Path(__file__).parent / "sql" / "schema.sql"
-    await db.init_schema(schema_path)
+    # For serverless (Vercel), skip explicit connect since we use lazy connection
+    # Only initialize schema if needed (typically for local dev with empty DB)
+    is_serverless = os.getenv("VERCEL", "") != ""
+    
+    if not is_serverless:
+        await db.connect()
+        schema_path = Path(__file__).parent / "sql" / "schema.sql"
+        await db.init_schema(schema_path)
+    
     yield
-    await db.disconnect()
+    
+    if not is_serverless:
+        await db.disconnect()
 
 
 app = FastAPI(lifespan=lifespan)

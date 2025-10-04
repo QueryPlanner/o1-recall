@@ -13,40 +13,40 @@ class Database:
 
     async def connect(self) -> None:
         if self._pool is None:
-            self._pool = await asyncpg.create_pool(self._dsn, min_size=1, max_size=10)
+            # Use smaller pool for serverless environments
+            self._pool = await asyncpg.create_pool(self._dsn, min_size=1, max_size=3)
 
     async def disconnect(self) -> None:
         if self._pool is not None:
             await self._pool.close()
             self._pool = None
 
-    async def execute(self, query: str, *args: Any) -> str:
+    async def _ensure_connected(self) -> None:
         if self._pool is None:
-            raise RuntimeError("Database pool is not initialized")
+            await self.connect()
+
+    async def execute(self, query: str, *args: Any) -> str:
+        await self._ensure_connected()
         async with self._pool.acquire() as con:
             return await con.execute(query, *args)
 
     async def fetch(self, query: str, *args: Any) -> List[asyncpg.Record]:
-        if self._pool is None:
-            raise RuntimeError("Database pool is not initialized")
+        await self._ensure_connected()
         async with self._pool.acquire() as con:
             return await con.fetch(query, *args)
 
     async def fetchrow(self, query: str, *args: Any) -> Optional[asyncpg.Record]:
-        if self._pool is None:
-            raise RuntimeError("Database pool is not initialized")
+        await self._ensure_connected()
         async with self._pool.acquire() as con:
             return await con.fetchrow(query, *args)
 
     async def fetchval(self, query: str, *args: Any) -> Any:
-        if self._pool is None:
-            raise RuntimeError("Database pool is not initialized")
+        await self._ensure_connected()
         async with self._pool.acquire() as con:
             return await con.fetchval(query, *args)
 
     async def init_schema(self, schema_path: Path) -> None:
-        if self._pool is None:
-            raise RuntimeError("Database pool is not initialized")
+        await self._ensure_connected()
         sql = schema_path.read_text(encoding="utf-8")
         async with self._pool.acquire() as con:
             async with con.transaction():
