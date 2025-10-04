@@ -86,42 +86,80 @@ async def generate_from_link(
     "long-term memory retention and deep conceptual understanding by actively forcing effortful retrieval and "
     "combating the forgetting curve."
 
-    "**Core Directives:**"
-    "1.  **Question Distribution (Target Mix):**"
-    "    - **~30% Factual Recall:** Key definitions, facts, and critical data points."
-    "    - **~40% Conceptual Understanding:** Questions that test the 'why' and 'how' behind the facts, requiring inference."
-    "    - **~20% Application & Scenario-Based:** Place the user in a situation where they must apply the knowledge to solve a problem."
-    "    - **~10% Integrative Thinking:** Questions that require connecting concepts from different sections of the document, fostering a holistic view (interleaving)."
+    "\n\n**CRITICAL: CONTEXT-FREE DESIGN PRINCIPLE:**"
+    "\n- These questions will be reviewed MONTHS after reading, when the user has completely forgotten the source article."
+    "\n- Every question MUST be fully self-contained with all necessary context embedded directly in the question stem."
+    "\n- Extract the GENERAL PRINCIPLE or CONCEPT from the article and test that, not the article's specific example or narrative."
+    "\n- Transform article-specific scenarios into universal, timeless knowledge questions."
+    "\n- NEVER reference: 'the article', 'the author', 'the text', 'the study mentioned', 'the experiment described', or any meta-references to the source."
 
-    "2.  **Simulate Open-Ended Challenge:**"
-    "    - Although the format is MCQ, the questions must demand deep processing. Frame them to simulate the cognitive load of open-ended questions. Use phrasing like: 'What is the primary reason for...?', 'Which of the following best explains the relationship between X and Y?', or 'How would Concept A affect Outcome B?'"
+    "\n\n**Core Directives:**"
+    "\n1.  **Question Distribution (Target Mix):**"
+    "\n    - **~30% Factual Recall:** Key definitions, facts, and critical data points (presented as general knowledge)."
+    "\n    - **~40% Conceptual Understanding:** Questions that test the 'why' and 'how' behind principles, requiring inference."
+    "\n    - **~20% Application & Scenario-Based:** Create NEW hypothetical scenarios that test the same principle from the article."
+    "\n    - **~10% Integrative Thinking:** Questions that require connecting concepts, fostering a holistic view."
 
-    "3.  **High-Effort Distractors:**"
-    "    - Generate one unambiguously correct answer based *only* on the source text."
-    "    - The three distractors must be highly plausible, targeting common misconceptions, subtle distinctions, or logically related but incorrect ideas. Avoid trivial or obviously wrong options. The user should have to pause and think critically."
+    "\n2.  **Transform Article Content into Universal Questions:**"
+    "\n    - **Instead of:** 'The author's experiment using AI image generation showed...'"
+    "\n    - **Write:** 'In AI image generation systems, when training data contains biased representations, what is the most likely outcome?'"
+    "\n    "
+    "\n    - **Instead of:** 'According to the article, what trend was observed?'"
+    "\n    - **Write:** 'What psychological principle explains why AI-generated images of people tend toward conventionally attractive features?'"
+    "\n    "
+    "\n    - **Key technique:** Identify the underlying principle, theory, or mechanism in the article, then ask about THAT directly."
 
-    "4.  **Comprehensive & Non-Redundant Coverage:**"
-    "    - Distribute questions proportionally across the document's main topics."
-    "    - Ensure each question tests a unique concept or application to avoid trivial duplication."
+    "\n3.  **Embed All Necessary Context in the Question:**"
+    "\n    - If the article discusses a specific case, extract the generalizable lesson and include enough context for the question to make sense standalone."
+    "\n    - Example: If an article discusses 'a 2023 study on neural networks,' your question should be: 'When neural networks are trained on imbalanced datasets, which of the following is most likely to occur?'"
 
-    "5.  **Critical Explanation Field:**"
-    "    - The 'explanation' is the most important part of the learning loop. It must be a concise micro-lesson."
-    "    - **Core Principle:** Start by stating the key idea or principle the question is testing."
-    "    - **Justify Correct Answer:** Briefly explain why the correct option is correct, using content-based reasoning without referring to the source, pages, or sections."
-    "    - **Deconstruct Distractors:** For each incorrect option, explain precisely *why* it is wrong. This is crucial for learning from errors."
-    "    - **Memory Anchor:** Provide a short, memorable cue. This could be an analogy, a mnemonic, or a 'Connect this to...' tip that links the idea to another concept in the document, enhancing consolidation."
+    "\n4.  **Simulate Open-Ended Challenge:**"
+    "\n    - Frame questions to demand deep processing: 'What is the primary mechanism by which...?', 'Which factor most significantly influences...?', 'In a scenario where X occurs, what would be the most likely outcome for Y?'"
 
-    "6.  **Self-Contained, Source-Agnostic Wording:**"
-    "    - Do not use phrases like 'According to the article', 'in the text', 'as stated above', 'on page X', or 'in section Y'."
-    "    - Each question and explanation must stand alone and include all necessary context without assuming the reader has the source document."
-    "    - Refer only to the ideas themselves; never instruct the reader to look at the article or any page/section."
+    "\n5.  **High-Effort Distractors:**"
+    "\n    - Generate one unambiguously correct answer based on the concepts from the source text."
+    "\n    - Three distractors must be highly plausible, targeting common misconceptions or logically related but incorrect ideas."
 
-   
+    "\n6.  **Comprehensive & Non-Redundant Coverage:**"
+    "\n    - Distribute questions proportionally across the document's main concepts."
+    "\n    - Ensure each question tests a unique principle or application."
+
+    "\n7.  **Critical Explanation Field:**"
+    "\n    - **Core Principle:** Start by stating the general principle or concept being tested (NOT 'the article discusses')."
+    "\n    - **Justify Correct Answer:** Explain why it's correct using conceptual reasoning, not article citations."
+    "\n    - **Deconstruct Distractors:** For each incorrect option, explain precisely why it's wrong."
+    "\n    - **Memory Anchor:** Provide a memorable analogy, mnemonic, or connection to related concepts."
+    "\n    - **Maintain Context Independence:** The explanation should also be self-contained and never reference the source material."
+
+    "\n\n**EXAMPLES OF TRANSFORMATION:**"
+    "\n"
+    "\n**BAD (Article-dependent):**"
+    "\n'The author's experiment using facial recognition AI demonstrated what primary bias?'"
+    "\n"
+    "\n**GOOD (Self-contained, concept-based):**"
+    "\n'When facial recognition systems are trained predominantly on datasets from Western countries, what type of bias is most commonly observed?'"
+    "\n"
+    "\n**BAD (Article-dependent):**"
+    "\n'According to the article, what trend exacerbates AI-generated attractiveness?'"
+    "\n"
+    "\n**GOOD (Self-contained, concept-based):**"
+    "\n'In machine learning systems that generate human faces, what phenomenon causes the outputs to converge toward conventionally attractive features over successive training iterations?'"
+    "\n"
+    "\n**OUTPUT FORMAT:**"
+    "\nReturn a JSON array where each question object has:"
+    "\n- 'question': The question text (fully self-contained)"
+    "\n- 'options': Array of 4 options (A, B, C, D)"
+    "\n- 'correct_answer': The letter of the correct option"
+    "\n- 'explanation': Comprehensive explanation with principle, correct answer justification, distractor analysis, and memory anchor"
+    "\n- 'difficulty': 'recall', 'conceptual', 'application', or 'integrative'"
 )
     response = client.models.generate_content(
         model=settings["GENAI_MODEL"],
         contents=cast(Any, [uploaded, prompt]),
         config=gen_types.GenerateContentConfig(
+            thinking_config=gen_types.ThinkingConfig(
+                thinking_budget=0,
+            ),
             response_mime_type="application/json",
             response_schema=MCQ_ARRAY_SCHEMA,
         ),
@@ -149,37 +187,72 @@ async def generate_from_pdf(
     "long-term memory retention and deep conceptual understanding by actively forcing effortful retrieval and "
     "combating the forgetting curve."
 
-    "**Core Directives:**"
-    "1.  **Question Distribution (Target Mix):**"
-    "    - **~30% Factual Recall:** Key definitions, facts, and critical data points."
-    "    - **~40% Conceptual Understanding:** Questions that test the 'why' and 'how' behind the facts, requiring inference."
-    "    - **~20% Application & Scenario-Based:** Place the user in a situation where they must apply the knowledge to solve a problem."
-    "    - **~10% Integrative Thinking:** Questions that require connecting concepts from different sections of the document, fostering a holistic view (interleaving)."
+    "\n\n**CRITICAL: CONTEXT-FREE DESIGN PRINCIPLE:**"
+    "\n- These questions will be reviewed MONTHS after reading, when the user has completely forgotten the source article."
+    "\n- Every question MUST be fully self-contained with all necessary context embedded directly in the question stem."
+    "\n- Extract the GENERAL PRINCIPLE or CONCEPT from the article and test that, not the article's specific example or narrative."
+    "\n- Transform article-specific scenarios into universal, timeless knowledge questions."
+    "\n- NEVER reference: 'the article', 'the author', 'the text', 'the study mentioned', 'the experiment described', or any meta-references to the source."
 
-    "2.  **Simulate Open-Ended Challenge:**"
-    "    - Although the format is MCQ, the questions must demand deep processing. Frame them to simulate the cognitive load of open-ended questions. Use phrasing like: 'What is the primary reason for...?', 'Which of the following best explains the relationship between X and Y?', or 'How would Concept A affect Outcome B?'"
+    "\n\n**Core Directives:**"
+    "\n1.  **Question Distribution (Target Mix):**"
+    "\n    - **~30% Factual Recall:** Key definitions, facts, and critical data points (presented as general knowledge)."
+    "\n    - **~40% Conceptual Understanding:** Questions that test the 'why' and 'how' behind principles, requiring inference."
+    "\n    - **~20% Application & Scenario-Based:** Create NEW hypothetical scenarios that test the same principle from the article."
+    "\n    - **~10% Integrative Thinking:** Questions that require connecting concepts, fostering a holistic view."
 
-    "3.  **High-Effort Distractors:**"
-    "    - Generate one unambiguously correct answer based *only* on the source text."
-    "    - The three distractors must be highly plausible, targeting common misconceptions, subtle distinctions, or logically related but incorrect ideas. Avoid trivial or obviously wrong options. The user should have to pause and think critically."
+    "\n2.  **Transform Article Content into Universal Questions:**"
+    "\n    - **Instead of:** 'The author's experiment using AI image generation showed...'"
+    "\n    - **Write:** 'In AI image generation systems, when training data contains biased representations, what is the most likely outcome?'"
+    "\n    "
+    "\n    - **Instead of:** 'According to the article, what trend was observed?'"
+    "\n    - **Write:** 'What psychological principle explains why AI-generated images of people tend toward conventionally attractive features?'"
+    "\n    "
+    "\n    - **Key technique:** Identify the underlying principle, theory, or mechanism in the article, then ask about THAT directly."
 
-    "4.  **Comprehensive & Non-Redundant Coverage:**"
-    "    - Distribute questions proportionally across the document's main topics."
-    "    - Ensure each question tests a unique concept or application to avoid trivial duplication."
+    "\n3.  **Embed All Necessary Context in the Question:**"
+    "\n    - If the article discusses a specific case, extract the generalizable lesson and include enough context for the question to make sense standalone."
+    "\n    - Example: If an article discusses 'a 2023 study on neural networks,' your question should be: 'When neural networks are trained on imbalanced datasets, which of the following is most likely to occur?'"
 
-    "5.  **Critical Explanation Field:**"
-    "    - The 'explanation' is the most important part of the learning loop. It must be a concise micro-lesson."
-    "    - **Core Principle:** Start by stating the key idea or principle the question is testing."
-    "    - **Justify Correct Answer:** Briefly explain why the correct option is correct, using content-based reasoning without referring to the source, pages, or sections."
-    "    - **Deconstruct Distractors:** For each incorrect option, explain precisely *why* it is wrong. This is crucial for learning from errors."
-    "    - **Memory Anchor:** Provide a short, memorable cue. This could be an analogy, a mnemonic, or a 'Connect this to...' tip that links the idea to another concept in the document, enhancing consolidation."
+    "\n4.  **Simulate Open-Ended Challenge:**"
+    "\n    - Frame questions to demand deep processing: 'What is the primary mechanism by which...?', 'Which factor most significantly influences...?', 'In a scenario where X occurs, what would be the most likely outcome for Y?'"
 
-    "6.  **Self-Contained, Source-Agnostic Wording:**"
-    "    - Do not use phrases like 'According to the article', 'in the text', 'as stated above', 'on page X', or 'in section Y'."
-    "    - Each question and explanation must stand alone and include all necessary context without assuming the reader has the source document."
-    "    - Refer only to the ideas themselves; never instruct the reader to look at the article or any page/section."
+    "\n5.  **High-Effort Distractors:**"
+    "\n    - Generate one unambiguously correct answer based on the concepts from the source text."
+    "\n    - Three distractors must be highly plausible, targeting common misconceptions or logically related but incorrect ideas."
 
-   
+    "\n6.  **Comprehensive & Non-Redundant Coverage:**"
+    "\n    - Distribute questions proportionally across the document's main concepts."
+    "\n    - Ensure each question tests a unique principle or application."
+
+    "\n7.  **Critical Explanation Field:**"
+    "\n    - **Core Principle:** Start by stating the general principle or concept being tested (NOT 'the article discusses')."
+    "\n    - **Justify Correct Answer:** Explain why it's correct using conceptual reasoning, not article citations."
+    "\n    - **Deconstruct Distractors:** For each incorrect option, explain precisely why it's wrong."
+    "\n    - **Memory Anchor:** Provide a memorable analogy, mnemonic, or connection to related concepts."
+    "\n    - **Maintain Context Independence:** The explanation should also be self-contained and never reference the source material."
+
+    "\n\n**EXAMPLES OF TRANSFORMATION:**"
+    "\n"
+    "\n**BAD (Article-dependent):**"
+    "\n'The author's experiment using facial recognition AI demonstrated what primary bias?'"
+    "\n"
+    "\n**GOOD (Self-contained, concept-based):**"
+    "\n'When facial recognition systems are trained predominantly on datasets from Western countries, what type of bias is most commonly observed?'"
+    "\n"
+    "\n**BAD (Article-dependent):**"
+    "\n'According to the article, what trend exacerbates AI-generated attractiveness?'"
+    "\n"
+    "\n**GOOD (Self-contained, concept-based):**"
+    "\n'In machine learning systems that generate human faces, what phenomenon causes the outputs to converge toward conventionally attractive features over successive training iterations?'"
+    "\n"
+    "\n**OUTPUT FORMAT:**"
+    "\nReturn a JSON array where each question object has:"
+    "\n- 'question': The question text (fully self-contained)"
+    "\n- 'options': Array of 4 options (A, B, C, D)"
+    "\n- 'correct_answer': The letter of the correct option"
+    "\n- 'explanation': Comprehensive explanation with principle, correct answer justification, distractor analysis, and memory anchor"
+    "\n- 'difficulty': 'recall', 'conceptual', 'application', or 'integrative'"
 )
     # Upload PDF to Files API and generate with strict JSON schema
     uploaded: gen_types.File = client.files.upload(
@@ -190,6 +263,9 @@ async def generate_from_pdf(
         model=settings["GENAI_MODEL"],
         contents=cast(Any, [uploaded, prompt]),
         config=gen_types.GenerateContentConfig(
+            thinking_config=gen_types.ThinkingConfig(
+                thinking_budget=0,
+            ),
             response_mime_type="application/json",
             response_schema=MCQ_ARRAY_SCHEMA,
         ),
