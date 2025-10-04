@@ -306,7 +306,9 @@ async def _persist_generated_questions(topic_name: Optional[str], sub_topic_name
     created = 0
     for item in data:
         use_topic = document_topic if unify_topic else (item.get("topic") or topic_name or "General")
-        use_sub_topic = (item.get("sub_topic") or sub_topic_name or "Misc")
+        # If the user supplied a sub_topic, always use it for all questions.
+        # If only a topic was supplied, let the model's per-item sub_topic be used.
+        use_sub_topic = (sub_topic_name or item.get("sub_topic") or "Misc")
 
         topic_id = await db.fetchval(
             "INSERT INTO topics(name) VALUES($1) ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name RETURNING id",
