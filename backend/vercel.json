@@ -13,7 +13,7 @@
   "routes": [
     {
       "src": "/app/(.*)",
-      "dest": "main.py"
+      "dest": "app/main.py"
     } 
   ]
 }
