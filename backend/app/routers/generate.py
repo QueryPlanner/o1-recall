@@ -1,5 +1,5 @@
 import io
-from typing import List, Optional
+from typing import List, Optional, cast, Any
 
 from fastapi import APIRouter, File, Form, UploadFile, HTTPException
 import httpx
@@ -74,7 +74,7 @@ async def generate_from_link(
         raise HTTPException(status_code=400, detail="unsupported_content_type")
 
     # Upload to Files API
-    uploaded = client.files.upload(
+    uploaded: gen_types.File = client.files.upload(
         file=io.BytesIO(content_bytes),
         config=dict(mime_type=mime_type),
     )
@@ -107,21 +107,27 @@ async def generate_from_link(
     "5.  **Critical Explanation Field:**"
     "    - The 'explanation' is the most important part of the learning loop. It must be a concise micro-lesson."
     "    - **Core Principle:** Start by stating the key idea or principle the question is testing."
-    "    - **Justify Correct Answer:** Briefly explain why the correct option is correct, citing the logic from the document."
+    "    - **Justify Correct Answer:** Briefly explain why the correct option is correct, using content-based reasoning without referring to the source, pages, or sections."
     "    - **Deconstruct Distractors:** For each incorrect option, explain precisely *why* it is wrong. This is crucial for learning from errors."
     "    - **Memory Anchor:** Provide a short, memorable cue. This could be an analogy, a mnemonic, or a 'Connect this to...' tip that links the idea to another concept in the document, enhancing consolidation."
+
+    "6.  **Self-Contained, Source-Agnostic Wording:**"
+    "    - Do not use phrases like 'According to the article', 'in the text', 'as stated above', 'on page X', or 'in section Y'."
+    "    - Each question and explanation must stand alone and include all necessary context without assuming the reader has the source document."
+    "    - Refer only to the ideas themselves; never instruct the reader to look at the article or any page/section."
 
    
 )
     response = client.models.generate_content(
         model=settings["GENAI_MODEL"],
-        contents=[uploaded, prompt],
+        contents=cast(Any, [uploaded, prompt]),
         config=gen_types.GenerateContentConfig(
             response_mime_type="application/json",
             response_schema=MCQ_ARRAY_SCHEMA,
         ),
     )
-    return await _persist_generated_questions(topic or None, sub_topic or None, response.text, count, unify_topic=True)
+    response_text: str = response.text or "[]"
+    return await _persist_generated_questions(topic or None, sub_topic or None, response_text, count, unify_topic=True)
 
 
 @router.post("/from-pdf")
@@ -164,26 +170,32 @@ async def generate_from_pdf(
     "5.  **Critical Explanation Field:**"
     "    - The 'explanation' is the most important part of the learning loop. It must be a concise micro-lesson."
     "    - **Core Principle:** Start by stating the key idea or principle the question is testing."
-    "    - **Justify Correct Answer:** Briefly explain why the correct option is correct, citing the logic from the document."
+    "    - **Justify Correct Answer:** Briefly explain why the correct option is correct, using content-based reasoning without referring to the source, pages, or sections."
     "    - **Deconstruct Distractors:** For each incorrect option, explain precisely *why* it is wrong. This is crucial for learning from errors."
     "    - **Memory Anchor:** Provide a short, memorable cue. This could be an analogy, a mnemonic, or a 'Connect this to...' tip that links the idea to another concept in the document, enhancing consolidation."
+
+    "6.  **Self-Contained, Source-Agnostic Wording:**"
+    "    - Do not use phrases like 'According to the article', 'in the text', 'as stated above', 'on page X', or 'in section Y'."
+    "    - Each question and explanation must stand alone and include all necessary context without assuming the reader has the source document."
+    "    - Refer only to the ideas themselves; never instruct the reader to look at the article or any page/section."
 
    
 )
     # Upload PDF to Files API and generate with strict JSON schema
-    uploaded = client.files.upload(
+    uploaded: gen_types.File = client.files.upload(
         file=io.BytesIO(content),
         config=dict(mime_type="application/pdf"),
     )
     response = client.models.generate_content(
         model=settings["GENAI_MODEL"],
-        contents=[uploaded, prompt],
+        contents=cast(Any, [uploaded, prompt]),
         config=gen_types.GenerateContentConfig(
             response_mime_type="application/json",
             response_schema=MCQ_ARRAY_SCHEMA,
         ),
     )
-    return await _persist_generated_questions(topic or None, sub_topic or None, response.text, count, unify_topic=True)
+    response_text: str = response.text or "[]"
+    return await _persist_generated_questions(topic or None, sub_topic or None, response_text, count, unify_topic=True)
 
 
 async def _persist_generated_questions(topic_name: Optional[str], sub_topic_name: Optional[str], json_text: str, requested_count: int, unify_topic: bool = True):
@@ -222,7 +234,7 @@ async def _persist_generated_questions(topic_name: Optional[str], sub_topic_name
 
         topic_id = await db.fetchval(
             "INSERT INTO topics(name) VALUES($1) ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name RETURNING id",
-            use_topic.strip(),
+            str(use_topic).strip(),
         )
         sub_topic_id = await db.fetchval(
             """
@@ -232,7 +244,7 @@ async def _persist_generated_questions(topic_name: Optional[str], sub_topic_name
             RETURNING id
             """,
             topic_id,
-            use_sub_topic.strip(),
+            str(use_sub_topic).strip(),
         )
         qid = await db.fetchval(
             """
