@@ -17,6 +17,13 @@ const QuizPage: React.FC<QuizPageProps> = ({ subTopicName, questions, onClose })
   const [correctChoiceId, setCorrectChoiceId] = useState<number | null>(null);
   const [lives, setLives] = useState(5);
   const [totalCorrect, setTotalCorrect] = useState(0);
+  const [showCompletion, setShowCompletion] = useState(false);
+  const [completionStats, setCompletionStats] = useState<{
+    xp: number;
+    accuracyPercent: number;
+    correctCount: number;
+    totalCount: number;
+  } | null>(null);
 
   const currentQuestion = questions[currentQuestionIndex];
 
@@ -57,17 +64,36 @@ const QuizPage: React.FC<QuizPageProps> = ({ subTopicName, questions, onClose })
   }, [selectedChoiceId, currentQuestion, correctChoiceIdFromPayload]);
 
   const handleContinue = () => {
-    if (currentQuestionIndex < questions.length - 1) {
+    const isLastQuestion = currentQuestionIndex >= questions.length - 1;
+
+    if (!isLastQuestion) {
       setCurrentQuestionIndex(prev => prev + 1);
       setSelectedChoiceId(null);
       setIsCorrect(null);
       setCorrectChoiceId(null);
-    } else {
-      // End of quiz - show completion screen
-      const accuracy = Math.round((totalCorrect / questions.length) * 100);
-      alert(`Practice Complete!\n\nTotal XP: ${totalCorrect * 10}\nAccuracy: ${accuracy}%`);
-      onClose();
+      return;
     }
+
+    const totalCount = questions.length;
+    const correctCount = totalCorrect;
+    const accuracyPercent = totalCount > 0
+      ? Math.round((correctCount / totalCount) * 100)
+      : 0;
+    const xp = correctCount * 10;
+
+    setCompletionStats({ xp, accuracyPercent, correctCount, totalCount });
+    setShowCompletion(true);
+  };
+
+  const handleRetry = () => {
+    setCurrentQuestionIndex(0);
+    setSelectedChoiceId(null);
+    setIsCorrect(null);
+    setCorrectChoiceId(null);
+    setLives(5);
+    setTotalCorrect(0);
+    setShowCompletion(false);
+    setCompletionStats(null);
   };
 
   if (!currentQuestion) {
@@ -196,6 +222,51 @@ const QuizPage: React.FC<QuizPageProps> = ({ subTopicName, questions, onClose })
             </div>
           </div>
         </footer>
+      )}
+
+      {/* Completion Modal */}
+      {showCompletion && completionStats && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50" aria-hidden="true" />
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="relative bg-white rounded-3xl shadow-2xl w-[90%] max-w-lg p-8 text-center border-2 border-gray-200"
+          >
+            <h2 className="text-3xl font-extrabold text-gray-800 mb-2">Practice Complete 🎉</h2>
+            <p className="text-gray-600 mb-6">Great work on "{subTopicName}"</p>
+
+            <div className="grid grid-cols-3 gap-4 mb-8">
+              <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200">
+                <div className="text-xs uppercase tracking-wider text-gray-500 font-bold">XP</div>
+                <div className="text-2xl font-extrabold text-[#58CC02] mt-1">{completionStats.xp}</div>
+              </div>
+              <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200">
+                <div className="text-xs uppercase tracking-wider text-gray-500 font-bold">Accuracy</div>
+                <div className="text-2xl font-extrabold text-gray-800 mt-1">{completionStats.accuracyPercent}%</div>
+              </div>
+              <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200">
+                <div className="text-xs uppercase tracking-wider text-gray-500 font-bold">Correct</div>
+                <div className="text-2xl font-extrabold text-gray-800 mt-1">{completionStats.correctCount}/{completionStats.totalCount}</div>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <button
+                onClick={onClose}
+                className="px-8 py-3 rounded-2xl bg-[#58CC02] hover:bg-[#46A302] text-white font-bold uppercase shadow-lg transition"
+              >
+                Finish
+              </button>
+              <button
+                onClick={handleRetry}
+                className="px-8 py-3 rounded-2xl bg-white border-2 border-gray-300 hover:border-gray-400 text-gray-700 font-bold uppercase shadow-sm transition"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
