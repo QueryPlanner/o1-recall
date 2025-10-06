@@ -10,7 +10,7 @@ const pillBtn = 'px-6 py-3 rounded-2xl font-bold shadow-md transition-all';
 
 const GeneratePage: React.FC<GeneratePageProps> = ({ onBack, onSuccess }) => {
   const [mode, setMode] = useState<'link' | 'pdf'>('link');
-  const [size, setSize] = useState<'small' | 'large'>('small');
+  const [size, setSize] = useState<'tiny' | 'small' | 'large'>('small');
   const [url, setUrl] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [topic, setTopic] = useState('');
@@ -158,6 +158,7 @@ const GeneratePage: React.FC<GeneratePageProps> = ({ onBack, onSuccess }) => {
         <div className="space-y-2">
           <label className="text-sm font-medium text-gray-600">Size</label>
           <div className="flex gap-3">
+            <button type="button" onClick={()=>setSize('tiny')} className={`${pillBtn} ${size==='tiny' ? 'bg-[#58CC02] text-white' : 'bg-gray-100 text-gray-700'}`}>Tiny (5)</button>
             <button type="button" onClick={()=>setSize('small')} className={`${pillBtn} ${size==='small' ? 'bg-[#58CC02] text-white' : 'bg-gray-100 text-gray-700'}`}>Small (25)</button>
             <button type="button" onClick={()=>setSize('large')} className={`${pillBtn} ${size==='large' ? 'bg-[#58CC02] text-white' : 'bg-gray-100 text-gray-700'}`}>Large (50)</button>
           </div>

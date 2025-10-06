@@ -32,7 +32,7 @@ MCQ_ARRAY_SCHEMA = {
 }
 
 # Map requested size to a question count
-SIZE_TO_COUNT = {"small": 25, "large": 50}
+SIZE_TO_COUNT = {"tiny": 5, "small": 25, "large": 50}
 
 
 @router.post("/from-link")

@@ -43,7 +43,7 @@ export const api = {
     return response.json();
   },
 
-  async generateFromLink(params: { url: string; size: 'small' | 'large'; topic?: string; sub_topic?: string }): Promise<{status:string;created:number;requested:number;topic:string}> {
+  async generateFromLink(params: { url: string; size: 'tiny' | 'small' | 'large'; topic?: string; sub_topic?: string }): Promise<{status:string;created:number;requested:number;topic:string}> {
     const body = new URLSearchParams();
     body.append('url', params.url);
     body.append('size', params.size);
@@ -59,7 +59,7 @@ export const api = {
     return response.json();
   },
 
-  async generateFromPdf(params: { file: File; size: 'small' | 'large'; topic?: string; sub_topic?: string }): Promise<{status:string;created:number;requested:number;topic:string}> {
+  async generateFromPdf(params: { file: File; size: 'tiny' | 'small' | 'large'; topic?: string; sub_topic?: string }): Promise<{status:string;created:number;requested:number;topic:string}> {
     const form = new FormData();
     form.append('pdf', params.file);
     form.append('size', params.size);
