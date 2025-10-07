@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { api } from '../api';
+import TopLoadingBar from './TopLoadingBar';
 
 interface GeneratePageProps {
   onBack: () => void;
@@ -75,6 +76,7 @@ const GeneratePage: React.FC<GeneratePageProps> = ({ onBack, onSuccess }) => {
 
   return (
     <div className="space-y-6">
+      <TopLoadingBar active={loading} />
       {/* Header */}
       <div className="flex items-center justify-between">
         <button onClick={onBack} className="p-2 text-gray-600 hover:text-gray-900 transition">

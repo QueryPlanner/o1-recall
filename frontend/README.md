@@ -37,6 +37,8 @@ npm run dev
 - 🎯 Live feedback on answers
 - 📊 Progress tracking
 - 🎨 Duolingo-inspired UI with green theme
+ - ⏳ Thin top loading bar during question generation
+ - ✅ Success toast auto-dismisses after ~5 seconds
 
 ## Configuration
 

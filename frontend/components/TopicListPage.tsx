@@ -25,7 +25,7 @@ const TopicListPage: React.FC<TopicListPageProps> = ({ topics, onSelectTopic, on
           <div className="text-5xl">🎲</div>
           <div className="flex-1 text-left">
             <h2 className="text-xl font-extrabold">Random Practice</h2>
-            <p className="text-sm opacity-90">Get a mixed set across all topics</p>
+            <p className="text-sm opacity-90">Select a random topic</p>
           </div>
           <svg
             className="w-6 h-6 opacity-90"

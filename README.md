@@ -47,11 +47,20 @@ o1-recall/
 Create `o1-recall/backend/.env`:
 ```
 DATABASE_URL=postgresql://USER:PASSWORD@HOST/DB_NAME?sslmode=require
-GENAI_API_KEY=your_gemini_api_key
-GENAI_MODEL=gemini-2.0-flash-001
 ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
 DEFAULT_USER_ID=1
+
+# Multiple API keys supported (comma-separated). One is chosen randomly per request
+GENAI_API_KEYS=key1,key2,key3
+
+# Two-model strategy: use model 1; on overload (503/UNAVAILABLE) fallback to model 2
+GEN_AI_MODEL_1=gemini-2.0-flash-001
+GEN_AI_MODEL_2=gemini-2.0-pro
 ```
+
+Backward compatibility:
+- If `GENAI_API_KEYS` is not set, the app uses `GENAI_API_KEY` (single key).
+- If `GEN_AI_MODEL_1/2` are not set, it uses `GENAI_MODEL` for both.
 
 ### Install & run (uv)
 ```
@@ -63,6 +72,11 @@ uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 - Tables are auto‑created on startup from `app/sql/schema.sql`.
 - Docs: http://localhost:8000/docs
+
+### Key rotation and model fallback
+- API key rotation: each generation request randomly selects one key from `GENAI_API_KEYS`.
+- Model fallback: the app tries `GEN_AI_MODEL_1` first; on `google.genai.errors.ServerError` with code 503 or status `UNAVAILABLE`, it retries once using `GEN_AI_MODEL_2`.
+  - Example error triggering fallback: `{ "error": { "code": 503, "status": "UNAVAILABLE", "message": "The model is overloaded. Please try again later." } }`
 
 ### Key endpoints
 - GET `/topics` → list topics
@@ -77,6 +91,8 @@ uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 Notes
 - Generation enforces exact requested counts (25 or 50) and unifies a single topic for the batch; sub‑topics may vary.
 - Frontend grades instantly from payload; backend logging is async.
+
+---
 
 ---
 
@@ -104,11 +120,15 @@ Change if backend runs elsewhere.
 1. Click “+ Create Questions”
    - From Link or PDF, choose size Small (25) or Large (50)
    - Optionally set Topic/Sub‑topic
+   - A thin green loading bar appears at the very top during generation
 2. Practice
    - Pick a Topic → Sub‑topic, or tap “Random Practice”
    - Answer 5 at a time; feedback is instant with explanations
 3. Streak
    - Keep the daily count to maintain your streak
+
+UI behavior:
+- Success toast after generation (“Added X/X …”) auto‑dismisses after ~5 seconds.
 
 ---
 
@@ -116,6 +136,7 @@ Change if backend runs elsewhere.
 - Link generation returns `bad_url_status`: the site likely blocks non‑browser clients. Save as PDF and use the PDF option.
 - Blank screen in Random Practice: ensure backend is running and `/questions/random` returns results.
 - Slow feedback: optimized already—grading is local; network logging is async.
+- Frequent `UNAVAILABLE`/503 errors: ensure multiple valid keys in `GENAI_API_KEYS`; confirm both `GEN_AI_MODEL_1` and `GEN_AI_MODEL_2` are set so fallback can succeed.
 
 ## License
 MIT.

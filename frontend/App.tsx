@@ -163,6 +163,13 @@ const App: React.FC = () => {
     setView('topics');
   };
 
+  // Auto-dismiss success toast after 5 seconds
+  useEffect(() => {
+    if (!success) return;
+    const t = setTimeout(() => setSuccess(null), 5000);
+    return () => clearTimeout(t);
+  }, [success]);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       <div className="container mx-auto max-w-4xl p-4">

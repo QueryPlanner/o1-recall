@@ -1,10 +1,12 @@
 import io
+import random
 from typing import List, Optional, cast, Any
 
 from fastapi import APIRouter, File, Form, UploadFile, HTTPException
 import httpx
 from google import genai
 from google.genai import types as gen_types
+from google.genai.errors import ServerError
 
 from ..config import load_settings
 from ..db import db
@@ -35,6 +37,53 @@ MCQ_ARRAY_SCHEMA = {
 SIZE_TO_COUNT = {"tiny": 5, "small": 25, "large": 50}
 
 
+def _choose_api_key(keys: List[str]) -> str:
+    # Prefer list of keys; fallback to single env if list is empty
+    if keys:
+        return random.choice(keys)
+    return settings.get("GENAI_API_KEY", "")
+
+
+def _generate_with_fallback(
+    client: genai.Client,
+    uploaded: gen_types.File,
+    prompt: str,
+    model_primary: str,
+    model_secondary: str,
+):
+    try:
+        return client.models.generate_content(
+            model=model_primary,
+            contents=cast(Any, [uploaded, prompt]),
+            config=gen_types.GenerateContentConfig(
+                thinking_config=gen_types.ThinkingConfig(
+                    thinking_budget=128,
+                ),
+                response_mime_type="application/json",
+                response_schema=MCQ_ARRAY_SCHEMA,
+            ),
+        )
+    except ServerError as exc:
+        # Only fallback on overload/unavailable
+        status_text = str(exc)
+        code = getattr(exc, "code", None) or getattr(exc, "status_code", None)
+        is_overloaded = (code == 503) or ("UNAVAILABLE" in status_text)
+        if not is_overloaded:
+            raise
+        # Fallback attempt
+        return client.models.generate_content(
+            model=model_secondary,
+            contents=cast(Any, [uploaded, prompt]),
+            config=gen_types.GenerateContentConfig(
+                thinking_config=gen_types.ThinkingConfig(
+                    thinking_budget=0,
+                ),
+                response_mime_type="application/json",
+                response_schema=MCQ_ARRAY_SCHEMA,
+            ),
+        )
+
+
 @router.post("/from-link")
 async def generate_from_link(
     url: str = Form(...),
@@ -42,9 +91,13 @@ async def generate_from_link(
     topic: Optional[str] = Form(None),
     sub_topic: Optional[str] = Form(None),
 ):
-    if not settings.get("GENAI_API_KEY"):
+    # Ensure we have at least one key
+    if not settings.get("GENAI_API_KEYS") and not settings.get("GENAI_API_KEY"):
         raise HTTPException(status_code=400, detail="genai_api_key_missing")
-    client = genai.Client(api_key=settings["GENAI_API_KEY"])
+    api_key = _choose_api_key(settings.get("GENAI_API_KEYS", []))
+    if not api_key:
+        raise HTTPException(status_code=400, detail="genai_api_key_missing")
+    client = genai.Client(api_key=api_key)
 
     # Download the URL content and infer MIME type
     try:
@@ -153,16 +206,12 @@ async def generate_from_link(
     "\n- 'explanation': Comprehensive explanation with principle, correct answer justification, distractor analysis, and memory anchor"
     "\n- 'difficulty': 'recall', 'conceptual', 'application', or 'integrative'"
 )
-    response = client.models.generate_content(
-        model=settings["GENAI_MODEL"],
-        contents=cast(Any, [uploaded, prompt]),
-        config=gen_types.GenerateContentConfig(
-            thinking_config=gen_types.ThinkingConfig(
-                thinking_budget=0,
-            ),
-            response_mime_type="application/json",
-            response_schema=MCQ_ARRAY_SCHEMA,
-        ),
+    response = _generate_with_fallback(
+        client=client,
+        uploaded=uploaded,
+        prompt=prompt,
+        model_primary=settings.get("GEN_AI_MODEL_1", settings.get("GENAI_MODEL")),
+        model_secondary=settings.get("GEN_AI_MODEL_2", settings.get("GENAI_MODEL")),
     )
     response_text: str = response.text or "[]"
     return await _persist_generated_questions(topic or None, sub_topic or None, response_text, count, unify_topic=True)
@@ -175,10 +224,13 @@ async def generate_from_pdf(
     topic: Optional[str] = Form(None),
     sub_topic: Optional[str] = Form(None),
 ):
-    if not settings.get("GENAI_API_KEY"):
+    if not settings.get("GENAI_API_KEYS") and not settings.get("GENAI_API_KEY"):
         raise HTTPException(status_code=400, detail="genai_api_key_missing")
     content = await pdf.read()
-    client = genai.Client(api_key=settings["GENAI_API_KEY"])
+    api_key = _choose_api_key(settings.get("GENAI_API_KEYS", []))
+    if not api_key:
+        raise HTTPException(status_code=400, detail="genai_api_key_missing")
+    client = genai.Client(api_key=api_key)
 
     count = SIZE_TO_COUNT.get(size.lower(), 25)
     prompt = (
@@ -259,16 +311,12 @@ async def generate_from_pdf(
         file=io.BytesIO(content),
         config=dict(mime_type="application/pdf"),
     )
-    response = client.models.generate_content(
-        model=settings["GENAI_MODEL"],
-        contents=cast(Any, [uploaded, prompt]),
-        config=gen_types.GenerateContentConfig(
-            thinking_config=gen_types.ThinkingConfig(
-                thinking_budget=0,
-            ),
-            response_mime_type="application/json",
-            response_schema=MCQ_ARRAY_SCHEMA,
-        ),
+    response = _generate_with_fallback(
+        client=client,
+        uploaded=uploaded,
+        prompt=prompt,
+        model_primary=settings.get("GEN_AI_MODEL_1", settings.get("GENAI_MODEL")),
+        model_secondary=settings.get("GEN_AI_MODEL_2", settings.get("GENAI_MODEL")),
     )
     response_text: str = response.text or "[]"
     return await _persist_generated_questions(topic or None, sub_topic or None, response_text, count, unify_topic=True)
