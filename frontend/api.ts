@@ -2,6 +2,29 @@ import type { Topic, SubTopic, Question, AnswerRequest, AnswerResponse, StreakRe
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
+// Shuffle helpers
+const MIN_CHOICES_TO_SHUFFLE = 2;
+
+function shuffleArray<T>(originalItems: T[], randomNumber: () => number = Math.random): T[] {
+  const items = [...originalItems];
+  for (let currentIndex = items.length - 1; currentIndex > 0; currentIndex -= 1) {
+    const swapIndex = Math.floor(randomNumber() * (currentIndex + 1));
+    const temp = items[currentIndex];
+    items[currentIndex] = items[swapIndex];
+    items[swapIndex] = temp;
+  }
+  return items;
+}
+
+function shuffleQuestionChoices(questions: Question[]): Question[] {
+  return questions.map((question) => {
+    const choices = Array.isArray(question.choices) ? question.choices : [];
+    const shouldShuffle = choices.length >= MIN_CHOICES_TO_SHUFFLE;
+    const shuffledChoices = shouldShuffle ? shuffleArray(choices) : choices;
+    return { ...question, choices: shuffledChoices };
+  });
+}
+
 export const api = {
   async getTopics(): Promise<Topic[]> {
     const response = await fetch(`${API_BASE_URL}/topics`);
@@ -18,13 +41,15 @@ export const api = {
   async getQuestions(subTopicId: number, limit: number = 5): Promise<Question[]> {
     const response = await fetch(`${API_BASE_URL}/sub_topics/${subTopicId}/questions?limit=${limit}`);
     if (!response.ok) throw new Error('Failed to fetch questions');
-    return response.json();
+    const data: Question[] = await response.json();
+    return shuffleQuestionChoices(data);
   },
 
   async getRandomQuestions(limit: number = 5): Promise<Question[]> {
     const response = await fetch(`${API_BASE_URL}/questions/random?limit=${limit}`);
     if (!response.ok) throw new Error('Failed to fetch random questions');
-    return response.json();
+    const data: Question[] = await response.json();
+    return shuffleQuestionChoices(data);
   },
 
   async submitAnswer(data: AnswerRequest): Promise<AnswerResponse> {
