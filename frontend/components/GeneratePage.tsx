@@ -10,9 +10,11 @@ interface GeneratePageProps {
 const pillBtn = 'px-6 py-3 rounded-2xl font-bold shadow-md transition-all';
 
 const GeneratePage: React.FC<GeneratePageProps> = ({ onBack, onSuccess }) => {
-  const [mode, setMode] = useState<'link' | 'pdf'>('link');
+  const [mode, setMode] = useState<'link' | 'pdf' | 'text'>('link');
   const [size, setSize] = useState<'tiny' | 'small' | 'large'>('small');
   const [url, setUrl] = useState('');
+  const [urls, setUrls] = useState<string[]>(['']);
+  const [sourceText, setSourceText] = useState<string>('');
   const [file, setFile] = useState<File | null>(null);
   const [topic, setTopic] = useState('');
   const [subTopic, setSubTopic] = useState('');
@@ -60,11 +62,23 @@ const GeneratePage: React.FC<GeneratePageProps> = ({ onBack, onSuccess }) => {
     try {
       let result;
       if (mode === 'link') {
-        if (!url) throw new Error('Please enter a URL');
-        result = await api.generateFromLink({ url, size, topic: topic || undefined, sub_topic: subTopic || undefined });
-      } else {
+        // Multi-link flow if more than one link provided or first row not empty
+        const cleaned = urls.map(u => u.trim()).filter(Boolean);
+        if (cleaned.length === 0 && url.trim()) cleaned.push(url.trim());
+        if (cleaned.length === 0) throw new Error('Please enter at least one URL');
+        if (cleaned.length === 1) {
+          result = await api.generateFromLink({ url: cleaned[0], size, topic: topic || undefined, sub_topic: subTopic || undefined });
+        } else {
+          if (cleaned.length > 5) throw new Error('Please add at most 5 links');
+          result = await api.generateFromLinks({ urls: cleaned, size, topic: topic || undefined, sub_topic: subTopic || undefined });
+        }
+      } else if (mode === 'pdf') {
         if (!file) throw new Error('Please select a PDF');
         result = await api.generateFromPdf({ file, size, topic: topic || undefined, sub_topic: subTopic || undefined });
+      } else {
+        const text = sourceText.trim();
+        if (!text) throw new Error('Please enter some text');
+        result = await api.generateFromText({ text, size, topic: topic || undefined, sub_topic: subTopic || undefined });
       }
       onSuccess({ created: result.created, requested: result.requested, topic: result.topic });
     } catch (err: any) {
@@ -91,17 +105,51 @@ const GeneratePage: React.FC<GeneratePageProps> = ({ onBack, onSuccess }) => {
       {/* Mode Switch */}
       <div className="bg-white p-2 rounded-2xl border-2 border-gray-200 w-fit mx-auto">
         <button onClick={() => setMode('link')} className={`${pillBtn} ${mode==='link' ? 'bg-[#58CC02] text-white' : 'bg-gray-100 text-gray-700'} mr-2`}>From Link</button>
-        <button onClick={() => setMode('pdf')} className={`${pillBtn} ${mode==='pdf' ? 'bg-[#58CC02] text-white' : 'bg-gray-100 text-gray-700'}`}>From PDF</button>
+        <button onClick={() => setMode('pdf')} className={`${pillBtn} ${mode==='pdf' ? 'bg-[#58CC02] text-white' : 'bg-gray-100 text-gray-700'} mr-2`}>From PDF</button>
+        <button onClick={() => setMode('text')} className={`${pillBtn} ${mode==='text' ? 'bg-[#58CC02] text-white' : 'bg-gray-100 text-gray-700'}`}>From Text</button>
       </div>
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="bg-white p-6 rounded-2xl border-2 border-gray-200 space-y-4">
         {mode === 'link' ? (
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-600">URL</label>
-            <input type="url" value={url} onChange={(e)=>setUrl(e.target.value)} placeholder="https://example.com/article" className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-[#58CC02] outline-none" />
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-gray-600">Links (max 5)</label>
+            {urls.map((val, idx) => (
+              <div key={idx} className="flex items-center gap-2">
+                <input
+                  type="url"
+                  value={val}
+                  onChange={(e)=>{
+                    const next = [...urls];
+                    next[idx] = e.target.value;
+                    setUrls(next);
+                  }}
+                  placeholder="https://example.com/article or https://youtu.be/..."
+                  className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-[#58CC02] outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => setUrls(urls.filter((_, i) => i !== idx))}
+                  className="px-3 py-2 rounded-xl bg-red-50 text-red-600 border-2 border-red-200 hover:bg-red-100 text-sm font-bold"
+                  aria-label="Remove link"
+                >
+                  −
+                </button>
+              </div>
+            ))}
+            <div className="flex justify-between">
+              <button
+                type="button"
+                onClick={() => setUrls(prev => (prev.length >= 5 ? prev : [...prev, '']))}
+                className="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 border-2 border-gray-200 hover:bg-gray-200 text-sm font-bold"
+              >
+                + Add link
+              </button>
+              {/* Back-compat single URL field retained but hidden for now */}
+              <input type="hidden" value={url} onChange={(e)=>setUrl(e.target.value)} />
+            </div>
           </div>
-        ) : (
+        ) : mode === 'pdf' ? (
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-600">PDF</label>
             {/* Dropzone */}
@@ -143,6 +191,16 @@ const GeneratePage: React.FC<GeneratePageProps> = ({ onBack, onSuccess }) => {
                 className="hidden"
               />
             </div>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-600">Source Text</label>
+            <textarea
+              value={sourceText}
+              onChange={(e)=>setSourceText(e.target.value)}
+              placeholder="Paste or type the text here..."
+              className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-[#58CC02] outline-none min-h-[160px]"
+            />
           </div>
         )}
 

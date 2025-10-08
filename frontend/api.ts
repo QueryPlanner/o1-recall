@@ -98,5 +98,39 @@ export const api = {
     if (!response.ok) throw new Error('Failed to generate from pdf');
     return response.json();
   },
+
+  async generateFromLinks(params: { urls: string[]; size: 'tiny' | 'small' | 'large'; topic?: string; sub_topic?: string }): Promise<{status:string;created:number;requested:number;topic:string}> {
+    const body = new URLSearchParams();
+    for (const u of params.urls) {
+      body.append('urls', u);
+    }
+    body.append('size', params.size);
+    if (params.topic) body.append('topic', params.topic);
+    if (params.sub_topic) body.append('sub_topic', params.sub_topic);
+
+    const response = await fetch(`${API_BASE_URL}/generate/from-links`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body,
+    });
+    if (!response.ok) throw new Error('Failed to generate from links');
+    return response.json();
+  },
+
+  async generateFromText(params: { text: string; size: 'tiny' | 'small' | 'large'; topic?: string; sub_topic?: string }): Promise<{status:string;created:number;requested:number;topic:string}> {
+    const body = new URLSearchParams();
+    body.append('text', params.text);
+    body.append('size', params.size);
+    if (params.topic) body.append('topic', params.topic);
+    if (params.sub_topic) body.append('sub_topic', params.sub_topic);
+
+    const response = await fetch(`${API_BASE_URL}/generate/from-text`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body,
+    });
+    if (!response.ok) throw new Error('Failed to generate from text');
+    return response.json();
+  },
 };
 
