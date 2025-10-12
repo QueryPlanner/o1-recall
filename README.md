@@ -36,6 +36,42 @@ o1-recall/
 
 ---
 
+## Running with Docker
+
+This is the recommended way to run the application locally.
+
+### Prerequisites
+- Docker and Docker Compose installed.
+
+### Setup
+1.  **Backend Environment File**:
+    Create a `.env` file in the `backend` directory by copying the example values below.
+
+    ```env
+    # backend/.env
+    DATABASE_URL=postgresql://user:password@host:port/database
+    ALLOWED_ORIGINS=http://localhost:8080,http://127.0.0.1:8080
+    GENAI_API_KEYS=your_google_ai_api_key_1,your_google_ai_api_key_2
+    DEFAULT_USER_ID=1
+    ```
+
+    Replace the placeholder values with your actual database connection string and Google GenAI API keys.
+
+2.  **Frontend API Configuration**:
+    The frontend is configured to connect to the backend at `http://localhost:8000`. In the Docker setup, the Nginx server acts as a reverse proxy, and you will access the application through `http://localhost:8080`. The API calls will be correctly routed to the backend service.
+
+    No changes are needed in `frontend/api.ts` for Docker deployment.
+
+### Run
+To start the application, run the following command from the root of the project:
+```bash
+docker-compose up --build
+```
+
+The frontend will be available at `http://localhost:8080`.
+
+---
+
 ## Backend (FastAPI)
 
 ### Requirements

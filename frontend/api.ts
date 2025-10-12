@@ -1,6 +1,10 @@
 import type { Topic, SubTopic, Question, AnswerRequest, AnswerResponse, StreakResponse } from './types';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+
+// Debug: surface which base URL is used at runtime
+// eslint-disable-next-line no-console
+console.log('[api] API_BASE_URL =', API_BASE_URL);
 
 // Shuffle helpers
 const MIN_CHOICES_TO_SHUFFLE = 2;
@@ -27,33 +31,40 @@ function shuffleQuestionChoices(questions: Question[]): Question[] {
 
 export const api = {
   async getTopics(): Promise<Topic[]> {
-    const response = await fetch(`${API_BASE_URL}/topics`);
+    const url = `${API_BASE_URL}/topics/`;
+    // eslint-disable-next-line no-console
+    console.log('[api] GET', url);
+    const response = await fetch(url);
     if (!response.ok) throw new Error('Failed to fetch topics');
     return response.json();
   },
 
   async getSubTopics(topicId: number): Promise<SubTopic[]> {
-    const response = await fetch(`${API_BASE_URL}/topics/${topicId}/sub_topics`);
+    const url = `${API_BASE_URL}/topics/${topicId}/sub_topics`;
+    const response = await fetch(url);
     if (!response.ok) throw new Error('Failed to fetch sub-topics');
     return response.json();
   },
 
   async getQuestions(subTopicId: number, limit: number = 5): Promise<Question[]> {
-    const response = await fetch(`${API_BASE_URL}/sub_topics/${subTopicId}/questions?limit=${limit}`);
+    const url = `${API_BASE_URL}/sub_topics/${subTopicId}/questions?limit=${limit}`;
+    const response = await fetch(url);
     if (!response.ok) throw new Error('Failed to fetch questions');
     const data: Question[] = await response.json();
     return shuffleQuestionChoices(data);
   },
 
   async getRandomQuestions(limit: number = 5): Promise<Question[]> {
-    const response = await fetch(`${API_BASE_URL}/questions/random?limit=${limit}`);
+    const url = `${API_BASE_URL}/questions/random?limit=${limit}`;
+    const response = await fetch(url);
     if (!response.ok) throw new Error('Failed to fetch random questions');
     const data: Question[] = await response.json();
     return shuffleQuestionChoices(data);
   },
 
   async submitAnswer(data: AnswerRequest): Promise<AnswerResponse> {
-    const response = await fetch(`${API_BASE_URL}/answers`, {
+    const url = `${API_BASE_URL}/answers`;
+    const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -63,7 +74,10 @@ export const api = {
   },
 
   async getStreak(): Promise<StreakResponse> {
-    const response = await fetch(`${API_BASE_URL}/streak`);
+    const url = `${API_BASE_URL}/streak/`;
+    // eslint-disable-next-line no-console
+    console.log('[api] GET', url);
+    const response = await fetch(url);
     if (!response.ok) throw new Error('Failed to fetch streak');
     return response.json();
   },
@@ -75,7 +89,8 @@ export const api = {
     if (params.topic) body.append('topic', params.topic);
     if (params.sub_topic) body.append('sub_topic', params.sub_topic);
 
-    const response = await fetch(`${API_BASE_URL}/generate/from-link`, {
+    const url = `${API_BASE_URL}/generate/from-link`;
+    const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body,
@@ -91,7 +106,8 @@ export const api = {
     if (params.topic) form.append('topic', params.topic);
     if (params.sub_topic) form.append('sub_topic', params.sub_topic);
 
-    const response = await fetch(`${API_BASE_URL}/generate/from-pdf`, {
+    const url = `${API_BASE_URL}/generate/from-pdf`;
+    const response = await fetch(url, {
       method: 'POST',
       body: form,
     });
@@ -108,7 +124,8 @@ export const api = {
     if (params.topic) body.append('topic', params.topic);
     if (params.sub_topic) body.append('sub_topic', params.sub_topic);
 
-    const response = await fetch(`${API_BASE_URL}/generate/from-links`, {
+    const url = `${API_BASE_URL}/generate/from-links`;
+    const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body,
@@ -124,7 +141,8 @@ export const api = {
     if (params.topic) body.append('topic', params.topic);
     if (params.sub_topic) body.append('sub_topic', params.sub_topic);
 
-    const response = await fetch(`${API_BASE_URL}/generate/from-text`, {
+    const url = `${API_BASE_URL}/generate/from-text`;
+    const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body,

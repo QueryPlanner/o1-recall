@@ -7,6 +7,8 @@ import time
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.trustedhost import TrustedHostMiddleware
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from .config import load_settings
 from .db import db, Database
@@ -48,11 +50,14 @@ app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings["ALLOWED_ORIGINS"],
+    allow_origins=["*"], # Temporarily allow all origins for debugging
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Trust proxy headers for correct scheme/host detection behind reverse proxy
+app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
 
 
 @app.middleware("http")

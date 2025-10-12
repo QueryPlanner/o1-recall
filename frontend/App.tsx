@@ -49,7 +49,7 @@ const App: React.FC = () => {
         }
       });
     } catch (err) {
-      setError('Failed to load topics. Make sure the backend is running at http://localhost:8000');
+      setError('Failed to load topics. Please check your connection and ensure the backend is running.');
       console.error(err);
     } finally {
       setLoading(false);
